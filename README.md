@@ -37,7 +37,7 @@ it easy to get a search interface talking to existing indexes, but also as a ref
 #Data/Database#
 * TODO: Abstract REST/Data layer to work with Elastic/SolR/etc. 
 
-#Systems#   
+#Systems#
 * TODO: Add support for Algolia, Azure Search, Amazon Search 
 
 This project is a collection of subprojects built over time at [Anant](https://www.anant.us/) by different [team members](https://www.anant.us/Company.aspx). 
