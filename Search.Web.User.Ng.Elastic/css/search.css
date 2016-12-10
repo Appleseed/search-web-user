@@ -1,0 +1,154 @@
+/*** Aopleseed ElasticSearch CSS File ***/
+
+.brand-title {
+    color: #ccc;
+    display: block;
+    float: left;
+    font-size: 20px;
+    font-weight: 200;
+    margin-left: -20px;
+    padding: 10px 20px 10px;
+}
+
+#page-header .navbar {
+	margin: 0;
+}
+
+#searchbar {
+	background-color: #efefef;
+	border-bottom: 1px solid #DEDEDE;
+}
+
+.searchbox {
+	margin: 10px 0 10px 0;
+    display: block;
+}
+
+.searchbox input{
+	display: inline-block;
+	height: 20px;
+	width: 206px;
+    padding: 4px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    line-height: 18px;
+    color: #808080;
+    border: 1px solid #ccc;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+	box-sizing: content-box;
+}
+
+.pager, .pagination {
+	margin: 10px 0px;
+}
+
+.facet {
+	border: 1px solid #E5E5E5;
+	border-radius: 0px;
+	padding: 0px;
+	margin: 0px 0px 20px;
+    list-style: none;
+}
+
+.facet-section {
+	padding: 8px 8px 8px 15px;
+}
+
+.facet-heading {
+	border-bottom: 1px solid #E5E5E5;
+}
+
+.facet h4 {
+	font-size: 14px;
+	font-weight: bold;
+	margin: 0px 0px 10px;
+}
+
+.facet label {
+	font-weight: normal;
+}
+
+
+#content {
+    padding-top: 20px;
+}
+
+.results-total {
+	margin-bottom: 0px;
+}
+
+.result-pages {
+	float: left;
+}
+
+.result-range {
+	float: right;
+}
+
+.search-results ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+.search-results .item-wrapper {
+	margin: 0px 0px 20px;
+}
+
+.search-results select {
+	background-color: #DDD;
+}
+
+.type-image img {
+	width: 100%;
+	height: 100%;
+}
+
+.result-title {
+	font-weight: bold;
+	margin: 0px;
+}
+
+.summary {
+	margin: 5px 0px;
+}
+
+.meta {
+	margin: 0px;
+	color: #999;
+}
+
+.region.doc-source {
+    background: #ddd;
+    border-radius: 2px;
+    color: #555;
+    font-size: x-small;
+    font-weight: bold;
+    padding: 2px 4px 2px 4px;
+}
+
+.region.mlt {
+	display: inline;
+    background: #157ab5;
+    color: #FFF;
+    font-size: 16px;
+    line-height: 16px;
+    font-weight: normal;
+    cursor: pointer;
+    padding: 6px 12px;
+    position: relative;
+    top: -40px;
+    left: 80%;
+}
+.region.mlt:hover {
+    background: #005580;
+}
+
+.no-padding {
+	padding: 0!important;
+}
+
+a:hover {
+	text-decoration: none;
+}

@@ -1,0 +1,11 @@
+*~
+*.gz
+*.zip
+test_*
+
+.idea/
+app/img/icon
+lib/*
+logs/*
+node_modules/**/*
+tmp/
