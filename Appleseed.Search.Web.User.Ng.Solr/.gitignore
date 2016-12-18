@@ -9,3 +9,8 @@ lib/*
 logs/*
 node_modules/**/*
 tmp/
+node_modules
+dist
+.tmp
+.sass-cache
+bower_components

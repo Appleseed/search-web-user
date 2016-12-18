@@ -7,11 +7,21 @@
   "private": true,
   "dependencies": {
     "angular": "~1.6.0",
-    "angular-route": "~1.5.0",
-    "angular-loader": "~1.5.0",
-    "angular-mocks": "~1.5.0",
+    "angular-route": "~1.6.0",
+    "angular-loader": "~1.6.0",
+    "angular-mocks": "~1.6.0",
     "html5-boilerplate": "^5.3.0",
     "d3" : "^4.4.0",
-    "sigma" : "^1.2.0"
+    "sigma" : "^1.2.0",
+    "bootstrap": "~3.0",
+    "bootstrap-datepicker" : "~1.6.4",
+    "google-maps-utility-library-v3" : "*",
+    "jQuery":"*",
+    "jquery-ui" : "*",
+    "json2" :"*",
+    "json3" :"*",
+    "overlapping-marker-spiderfier-jawj" : "*",
+    "qunit" : "*",
+    "Appleseed/ngSolr" : "*"
   }
 }
