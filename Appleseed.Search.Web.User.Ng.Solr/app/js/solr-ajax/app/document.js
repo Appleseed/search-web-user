@@ -21,6 +21,6 @@ app.config(['$routeProvider', function ($routeProvider) {
 
 }])
 .run(function($rootScope) {
-	$rootScope.appleseedsSearchSolrProxy = "http://localhost:8983/solr/appleseed-public";
+	$rootScope.appleseedsSearchSolrProxy = "http://search-index-solr:8983/solr/appleseed-public";
 });
 
