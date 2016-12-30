@@ -30,7 +30,7 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             return deferred.resolve(result);
         };
         $timeout(fn, 3000);
-        //$("#select-chosen").chosen();
+        
         return deferred.promise;
     };
 
@@ -54,6 +54,9 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
 
     // the list of facet values
     $scope.items = [];
+    // the list of chosen facets 
+    $scope.selectedItems = [];
+    
 
     // the max number of items to display in the facet list
     $scope.maxItems = 30;
@@ -91,39 +94,6 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         this.score = Score;
     }
 
-    /**
-     * Add the selected facet to the facet constraint list.
-     * @param $event Event
-     * @param Index Index of user selected facet. This facet will be added to
-     * the search list.
-     */
-    $scope.add = function($event, Index) {
-        // create a new facet
-        var query = SolrSearchService.getQuery($scope.queryName);
-        if (query == undefined) {
-            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
-        }
-        var name = $scope.field;
-        // ISSUE #27 replace all space characters with * to ensure that Solr matches
-        // on the space value
-
-        console.dir(Index);
-
-        //var value = "(" + '"' + $scope.items[Index].value.split(' ').join('*') + '"' + ")";
-        // REVIEW: Getting rid of quotes - 12/20/16
-        var value = "(" + Index[0].value.split(' ').join('*') +")";
-
-        var facet = query.createFacet(name, value);
-        // check to see if the selected facet is already in the list
-        if ($scope.facets.indexOf(facet) == -1) {
-            query.addFacet(facet);
-            // change window location
-            var hash = query.getHash();
-            $location.path(hash);
-        }
-        // @see https://github.com/angular/angular.js/issues/1179
-        $event.preventDefault();
-    };
 
     /**
      * Handle update event. Get the query object then determine if there is a
@@ -136,53 +106,90 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         $scope.selected = false;
         var selected_values = [];
         // get the starting query
-        var hash = ($routeParams.query || undefined);
-        if (hash) {
-            var query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);
-        } else {
-            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
-        }
+        //var hash = ($routeParams.query || undefined);
+        //if (hash) {
+        //    var query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);
+        //} else {
+        var query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        //}
+        
+        // new query so that the select box isn't overwritten - get all the things 
+        query.setUserQuery("*:*");
+
         // if there is an existing query, find out if there is an existing
         // facet query corresponding to this controller's specified facet
         // field. if there is a match then set that value as selected in
         // our list
-        var facets = query.getFacets();
-        for (var i=0; i<facets.length; i++) {
-            var f = facets[i];
-            if (f.field.indexOf($scope.field) > -1) {
-                $scope.selected = true;
-                var s = f.value.replace(/([\(\[\)\]])+/g,"");
-                selected_values.push(s);
-                // break;
-            }
-        }
+        var i = 0;
+       
         // get the list of facets for the query
         var facet_query = SolrSearchService.getQuery($scope.facetQuery);
         var results = facet_query.getFacetCounts();
         if (results && results.hasOwnProperty('facet_fields')) {
-            // trim the result list to the maximum item count
-            if (results.facet_fields[$scope.field].length > $scope.maxItems * 2) {
-                var facet_fields = results.facet_fields[$scope.field].splice(0,$scope.maxItems);
-            } else {
-                var facet_fields = results.facet_fields[$scope.field];
-            }
-            // add facets to the item list if they have not already been
-            // selected
+            
+            var facet_fields = results.facet_fields[$scope.field];
+            
             for (i=0; i< facet_fields.length; i+=2) {
                 var value = results.facet_fields[$scope.field][i];
-                if (selected_values.indexOf(value) == -1) {
-                    var count = results.facet_fields[$scope.field][i+1];
-                    var facet = new FacetResult(value,count);
-                    if($scope.htmlTags.indexOf(facet.value)=== -1) {
-
-                        $scope.items.push(facet);
-                        //$scope.items.push(value);
-                    }
+                var count = results.facet_fields[$scope.field][i+1];
+                var facet = new FacetResult(value,count);
+                // add regardless - want it all there. 
+                if($scope.htmlTags.indexOf(facet.value)=== -1){
+                    $scope.items.push(facet);
                 }
             }
         }
+
     };
 
+    /* When the multi-select changes add all items to selectedItems/ refresh list.*/
+    $scope.changedValue = function(items) {
+        $scope.selectedItems=[];
+        for(var item in items){
+            $scope.selectedItems.push(items[item]);
+        }
+    }   
+
+    /**
+     * Add the newly selected items / refresh the facet constraint list.
+     * when the selectedItems changes.
+     * @param newSelectedItems Newly selected items 
+     * @param oldSelectedItems Previously selected items 
+     */
+    $scope.$watch('selectedItems', function(newSelectedItems,oldSelectedItems) {
+        $scope.applyFacets(newSelectedItems);
+    });
+
+    /**
+     * Separate applyFacets - applies the selected facets to the hash / query 
+     */
+    $scope.applyFacets = function(selectedItems){
+        var query = SolrSearchService.getQuery($scope.queryName);
+        if (query == undefined) {
+            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        }
+
+        var name = $scope.field;
+        var emptyFacet = query.createFacet(name,""); // for removal
+        if(selectedItems.length==0){
+            query.addFacet(emptyFacet);
+            //return;
+        } else {
+            var values = "(";
+            for(var selected in selectedItems){
+                var value = "+"+selectedItems[selected].value.split(' ').join('*');
+                values+=value;
+            }
+            values+=")";
+            var facet = query.createFacet(name, values);
+            query.addFacet(facet);
+        }
+
+        var hash = query.getHash();
+        console.log(hash);
+        $location.path(hash);
+        $location.path(hash);
+    }
     /**
      * Initialize the controller.
      */
@@ -195,9 +202,13 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         }
         // handle facet list updates
         $scope.facetQuery = $scope.field + "Query";
+        
         $scope.$on($scope.facetQuery, function () {
-            $scope.handleUpdate();
+            //console.log("what update");
+            //$scope.handleUpdate();
         });
+        
+        /*
         // update the list of facets on route change
         $scope.$on("$routeChangeSuccess", function() {
             // create a query to get the list of facets
@@ -207,6 +218,8 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             } else {
                 query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
             }
+
+            query.setUserQuery("*:*");
             query.setOption("facet", "true");
             query.setOption("facet.field", $scope.field);
             //query.setOption("facet.limit", $scope.maxItems);
@@ -216,15 +229,43 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             query.setOption("wt", "json");
             SolrSearchService.setQuery($scope.facetQuery, query);
             SolrSearchService.updateQuery($scope.facetQuery);
+
         });
+        */
+        
+        setTimeout(function () {
+            //chill here while the results come back 
+            //$("#select-chosen").chosen();
+            $scope.handleUpdate();
+
+            setTimeout(function () {
+            //chill here while the results come back 
+                $("#select-chosen").chosen();
+
+                $('#select-chosen').on('change', function(event, params) {
+                    console.log(params);
+                    console.dir( $(this).val());
+                    if(params.deselected!=undefined && $(this).val()==null){
+                        
+                        console.dir($scope.selectedItems);
+                        // = [];
+                        //$scope.selectedItems.push(new FacetResult("*",0));
+                        $scope.applyFacets($scope.selectedItems);
+                        //$scope.handleUpdate();
+                    }
+                });
+            }, 350);
+
+        }, 350);
+        
+        
     };
 
     // initialize the controller
     $scope.init();
 
+    
     return $scope.disabled = true;
-
-
 }
 
 // inject controller dependencies

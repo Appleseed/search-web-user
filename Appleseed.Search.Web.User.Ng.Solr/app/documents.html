@@ -127,18 +127,15 @@
                             data-exclusive="false"
                             data-field="type"
                             data-source="{{appleseedsSearchSolrProxy}}"
+                            
                             >
-
-                            <li class="facet-heading"><p> Chosen: {{chosenFacet}}</p></li>
+                            <li class="facet-heading"><p> Type (Chosen):</p></li>
                             <li>
-                                  <select id = "select-chosen" chosen 
+                                  <select id = "select-chosen"  
                                         multiple
-                                        disable-search="false" 
-                                        allow-single-deselect="true"
-                                        placeholder-text-multiple="'Choose Provider Type'"
                                         no-results-text="'None Found'"
                                         ng-options="item.value for item in items"
-                                        ng-change="add($event,chosenFacet)"
+                                        ng-change="changedValue(chosenFacet)"
                                         ng-model="chosenFacet">
                                 </select>
                             </li>
