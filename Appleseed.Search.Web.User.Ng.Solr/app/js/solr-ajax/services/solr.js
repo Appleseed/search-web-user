@@ -112,12 +112,11 @@ function SolrQuery(Url) {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    
     /**
      * Add facet constraint if it does not already exist, or updates it if it does
      * @param Facet
      */
-     self.addFacet = function(Facet) {
+    self.addFacet = function(Facet) {
         for (var i=0;i<self.facets.length;i++) {
             if (self.facets[i].field == Facet.field && Facet.value == '') {
                 self.removeFacetByIndex(i);
@@ -130,7 +129,9 @@ function SolrQuery(Url) {
                 return;
             }  
         }
-        self.facets.push(Facet);
+        if(Facet.value!=''){
+            self.facets.push(Facet);
+        }
     };
 
     /**
