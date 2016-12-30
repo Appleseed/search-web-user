@@ -125,13 +125,13 @@
                         <ul id="type-panel-chosen" class="facet-panel"
                             ng-controller="FieldChosenFacetController"
                             data-exclusive="false"
-                            data-field="type"
+                            data-field="smartKeywords"
                             data-source="{{appleseedsSearchSolrProxy}}"
                             
                             >
-                            <li class="facet-heading"><p> Type (Chosen):</p></li>
+                            <li class="facet-heading"><p> Keyword (Chosen):</p></li>
                             <li>
-                                  <select id = "select-chosen-type" class="select-chosen" 
+                                  <select id = "select-chosen-smartKeywords" class="select-chosen" 
                                         multiple
                                         no-results-text="'None Found'"
                                         ng-options="item.value for item in items"

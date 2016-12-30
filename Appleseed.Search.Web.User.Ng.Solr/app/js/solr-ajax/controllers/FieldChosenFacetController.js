@@ -234,6 +234,8 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         });
         */
         
+        
+
         setTimeout(function () {
             //chill here while the results come back 
             //$("#select-chosen").chosen();
@@ -241,14 +243,14 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
 
             setTimeout(function () {
             //chill here while the results come back 
-                $("#select-chosen-"+$scope.field+"").chosen();
+                $("#select-chosen-"+$scope.field).chosen();
 
-                $("#select-chosen-"+$scope.field+"").on('change', function(event, params) {
-                    //console.log(params);
-                    //console.dir( $(this).val());
+                $("#select-chosen"+$scope.field).on('change', function(event, params) {
+                    console.log(params);
+                    console.dir( $(this).val());
                     if(params.deselected!=undefined && $(this).val()==null){
                         
-                        //console.dir($scope.selectedItems);
+                        console.dir($scope.selectedItems);
                         // = [];
                         //$scope.selectedItems.push(new FacetResult("*",0));
                         $scope.applyFacets($scope.selectedItems);
@@ -257,7 +259,7 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
                 });
             }, 500);
 
-        }, 350);
+        }, 500);
         
         
     };
