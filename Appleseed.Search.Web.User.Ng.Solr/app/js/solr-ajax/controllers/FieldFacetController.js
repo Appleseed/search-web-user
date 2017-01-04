@@ -32,6 +32,10 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
     // the name of the query used to retrieve the list of facet values
     $scope.facetQuery = 'facetQuery';
 
+    // TODO: facetQueryOperator currently unused;
+    // the operator used when joining multiple facet queries
+    $scope.facetQueryOperator = 'OR';
+
     // the list of facets
     $scope.facets = [];
 

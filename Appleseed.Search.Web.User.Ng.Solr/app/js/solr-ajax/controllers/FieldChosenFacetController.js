@@ -46,6 +46,9 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
     // the name of the query used to retrieve the list of facet values
     $scope.facetQuery = 'chosenFacetQuery';
 
+    // the operator used when joining multiple facet queries
+    $scope.facetQueryOperator = 'OR';
+
     // the list of facets
     $scope.facets = [];
 
@@ -178,7 +181,7 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             for(var selected in selectedItems){
                 var operator = "";
                 if(selectedItems.length>1 && selected>0) 
-                    operator = " OR ";
+                    operator = $scope.facetQueryOperator;
                 var value = operator+"(" + selectedItems[selected].value.replace(' : ', ' ').split(' ').join('*') + ")";
                 values+=value;
             }
