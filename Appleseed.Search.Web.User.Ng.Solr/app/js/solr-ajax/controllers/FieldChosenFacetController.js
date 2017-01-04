@@ -173,12 +173,13 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         var emptyFacet = query.createFacet(name,""); // for removal
         if(selectedItems.length==0){
             query.addFacet(emptyFacet);
-            
-            //return;
         } else {
             var values = "(";
             for(var selected in selectedItems){
-                var value = "+"+selectedItems[selected].value.split(' ').join('*');
+                var operator = "";
+                if(selectedItems.length>1 && selected>0) 
+                    operator = " OR ";
+                var value = operator+"(" + selectedItems[selected].value.replace(' : ', ' ').split(' ').join('*') + ")";
                 values+=value;
             }
             values+=")";
