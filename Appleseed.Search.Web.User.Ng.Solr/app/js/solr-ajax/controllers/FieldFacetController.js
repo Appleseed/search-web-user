@@ -92,7 +92,7 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         var name = $scope.field;
         // ISSUE #27 replace all space characters with * to ensure that Solr matches
         // on the space value
-        var value = "(" + '"' + $scope.items[Index].value.split(' ').join('*') + '"' + ")";
+        var value = "(" + '"' + $scope.items[Index].value.replace(' : ', ' ').split(' ').join('*') + '"' + ")";
 
         var facet = query.createFacet(name, value);
         // check to see if the selected facet is already in the list
