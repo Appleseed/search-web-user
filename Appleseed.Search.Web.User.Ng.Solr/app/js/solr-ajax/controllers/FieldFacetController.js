@@ -143,7 +143,7 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         if (results && results.hasOwnProperty('facet_fields')) {
             // trim the result list to the maximum item count
             if (results.facet_fields[$scope.field].length > $scope.maxItems * 2) {
-                var facet_fields = results.facet_fields[$scope.field].splice(0,$scope.maxItems);
+                var facet_fields = results.facet_fields[$scope.field].splice($scope.maxItems,results.facet_fields[$scope.field].length);
             } else {
                 var facet_fields = results.facet_fields[$scope.field];
             }
