@@ -17,7 +17,7 @@ module.filter('cleanFacetLabel', function() {
      * @return {String} Substitution text
      */
     return function(text) {
-        if(text!=undefined) return text;
+        if(text==undefined) return text;
         // ISSUE #28 remove all replacement characters
         var val = text.split('(').join('');
         val = val.split(')').join('');
@@ -56,7 +56,7 @@ module.filter('prettyFacetLabel', function() {
      * @return {String} Substitution text
      */
     return function(facet) {
-        if(facet!=undefined) return facet;
+        if(facet==undefined) return facet;
         // convert field name from camel case to sentence case
         var result = facet.field.replace(/([A-Z])/g, " $1");
         var label = result.charAt(0).toUpperCase() + result.slice(1);
