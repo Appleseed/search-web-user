@@ -92,7 +92,7 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         var name = $scope.field;
         // ISSUE #27 replace all space characters with * to ensure that Solr matches
         // on the space value
-        var value = "(" + '"' + $scope.items[Index].value.split(' ').join('*') + '"' + ")";
+        var value = "(" + '"' + $scope.items[Index].value.replace(' : ', ' ').split(' ').join('*') + '"' + ")";
 
         var facet = query.createFacet(name, value);
         // check to see if the selected facet is already in the list
@@ -143,7 +143,7 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         if (results && results.hasOwnProperty('facet_fields')) {
             // trim the result list to the maximum item count
             if (results.facet_fields[$scope.field].length > $scope.maxItems * 2) {
-                var facet_fields = results.facet_fields[$scope.field].splice(0,$scope.maxItems);
+                var facet_fields = results.facet_fields[$scope.field].splice($scope.maxItems,results.facet_fields[$scope.field].length);
             } else {
                 var facet_fields = results.facet_fields[$scope.field];
             }
