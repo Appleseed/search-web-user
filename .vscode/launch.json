@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch documents.html (solr)",
+            "type": "chrome",
+            "request": "launch",
+            "port": 9222,
+            "url": "http://localhost:8000/documents.html",
+            "webRoot": "${workspaceRoot}/app"
+        },
+        {
+            "name": "Attach documents.html (solr)",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "url": "http://localhost:8000/documents.html#/q=*:*&fl=*&json.wrf=JSON_CALLBACK&rows=10&wt=json&sort=glossary_sort%20asc",
+            "webRoot": "${workspaceRoot}/app"
+        },
+    ]
+}
