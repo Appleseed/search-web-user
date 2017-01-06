@@ -169,6 +169,7 @@ function SolrQuery(Url) {
         return self.error;
     };
 
+
     /**
      * Get facet by name. Returns null if the facet could not be found.
      * @param Name
@@ -187,6 +188,14 @@ function SolrQuery(Url) {
      */
     self.getFacetCounts = function() {
         return self.facet_counts;
+    };
+
+    /**
+     * Clear the facet list.
+     * @returns {List}
+     */
+    self.clearFacets = function() {
+        self.facets = [];
     };
 
     /**
