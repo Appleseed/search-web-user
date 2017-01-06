@@ -60,7 +60,6 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
     // the list of chosen facets 
     $scope.selectedItems = [];
     
-
     // the max number of items to display in the facet list
     $scope.maxItems = 30;
 
@@ -109,15 +108,15 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         $scope.selected = false;
         var selected_values = [];
         // get the starting query
-        //var hash = ($routeParams.query || undefined);
-        //if (hash) {
-        //    var query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);
-        //} else {
-        var query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
-        //}
+        var hash = ($routeParams.query || undefined);
+        if (hash) {
+            var query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);
+        } else {
+            var query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        }
         
         // new query so that the select box isn't overwritten - get all the things 
-        query.setUserQuery("*:*");
+        //query.setUserQuery("*:*");
 
         // if there is an existing query, find out if there is an existing
         // facet query corresponding to this controller's specified facet
@@ -142,6 +141,9 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
                 }
             }
         }
+
+        //bind the chosen select boxes
+        $scope.bindChosenSelectors();
 
     };
 
@@ -181,7 +183,7 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             for(var selected in selectedItems){
                 var operator = "";
                 if(selectedItems.length>1 && selected>0) 
-                    operator = $scope.facetQueryOperator;
+                    operator = " OR ";
                 var value = operator+"(" + selectedItems[selected].value.replace(' : ', ' ').split(' ').join('*') + ")";
                 values+=value;
             }
@@ -195,6 +197,32 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
         $location.path(hash);
         $location.path(hash);
     }
+
+    $scope.bindChosenSelectors = function(){
+        //// what normally angular does with select, we are then using chosen 
+        setTimeout(function () {
+            $scope.handleUpdate();
+
+            setTimeout(function () {
+            //chill here while the results come back 
+                $("#select-chosen-"+$scope.field).chosen();
+                $("#select-chosen-"+$scope.field).trigger("chosen:updated");
+                $("#select-chosen"+$scope.field).on('change', function(event, params) {
+                    console.log(params);
+                    console.dir( $(this).val());
+                    if(params.deselected!=undefined && $(this).val()==null){
+                        
+                        console.dir($scope.selectedItems);
+                        // = [];
+                        //$scope.selectedItems.push(new FacetResult("*",0));
+                        $scope.applyFacets($scope.selectedItems);
+                        //$scope.handleUpdate();
+                    }
+                });
+            }, 500);
+        }, 500);
+    }
+
     /**
      * Initialize the controller.
      */
@@ -206,14 +234,15 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             }
         }
         // handle facet list updates
+        
         $scope.facetQuery = $scope.field + "Query";
-        
         $scope.$on($scope.facetQuery, function () {
-            //console.log("what update");
-            //$scope.handleUpdate();
+            $scope.handleUpdate();
         });
+
+        //bind the chosen select boxes
+        $scope.bindChosenSelectors();
         
-        /*
         // update the list of facets on route change
         $scope.$on("$routeChangeSuccess", function() {
             // create a query to get the list of facets
@@ -234,37 +263,7 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             query.setOption("wt", "json");
             SolrSearchService.setQuery($scope.facetQuery, query);
             SolrSearchService.updateQuery($scope.facetQuery);
-
         });
-        */
-        
-        
-
-        setTimeout(function () {
-            //chill here while the results come back 
-            //$("#select-chosen").chosen();
-            $scope.handleUpdate();
-
-            setTimeout(function () {
-            //chill here while the results come back 
-                $("#select-chosen-"+$scope.field).chosen();
-
-                $("#select-chosen"+$scope.field).on('change', function(event, params) {
-                    console.log(params);
-                    console.dir( $(this).val());
-                    if(params.deselected!=undefined && $(this).val()==null){
-                        
-                        console.dir($scope.selectedItems);
-                        // = [];
-                        //$scope.selectedItems.push(new FacetResult("*",0));
-                        $scope.applyFacets($scope.selectedItems);
-                        //$scope.handleUpdate();
-                    }
-                });
-            }, 500);
-
-        }, 500);
-        
         
     };
 
