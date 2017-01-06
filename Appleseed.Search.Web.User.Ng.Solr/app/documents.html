@@ -127,9 +127,10 @@
                             data-exclusive="false"
                             data-field="smartKeywords"
                             data-source="{{appleseedsSearchSolrProxy}}"
-                            
+                            ng-cloak
+                            ng-show="items.length>1"
                             >
-                            <li class="facet-heading"><p> Keyword (Chosen):</p></li>
+                            <li class="facet-heading"><p> Keyword (Chosen): {{items.length}}</p></li>
                             <li>
                                   <select id = "select-chosen-smartKeywords" class="select-chosen" 
                                         multiple
