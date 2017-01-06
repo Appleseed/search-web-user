@@ -109,6 +109,9 @@ function SolrQuery(Url) {
 
     // URL to the Solr core ex. http://example.com/solr/CORE
     self.solr = Url;
+    
+    self.excludeFromHash = [ "&json.wrf=JSON_CALLBACK", "&wt=json" ]; // excluded parameters from returned Solr hash
+
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -199,7 +202,11 @@ function SolrQuery(Url) {
      * @returns {String} Location hash
      */
     self.getHash = function() {
-        return '/' + self.getQuery();
+        var query = self.getQuery();
+        for (var i = 0; i < self.excludeFromHash.length; i++) {
+            query = query.replace(self.excludeFromHash[i], '');
+        }
+        return '/' + query;
     };
 
     /**
