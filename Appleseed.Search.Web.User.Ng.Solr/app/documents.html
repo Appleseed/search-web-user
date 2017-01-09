@@ -101,25 +101,30 @@
                     <!-- search panel -->
                     <div id="search-panel" class="span2 column-240 bs-docs-sidebar">
 
-                        <!-- facet selection controller -->
-                        <ul class="facet-panel"
-                            data-source="{{appleseedsSearchSolrProxy}}"
-                            ng-controller="FacetSelectionController"
-                            ng-show="items.length>0"
-                            ng-cloak>
-                            <li class="facet-heading"><p>Filtering By</p></li>
-                            <li>
-                                <ul class="items unstyled">
-                                    <li class="facet" ng-repeat="item in items">
-                                        <i class="icon-tag"></i>
-                                        <a ng-click="remove($index)">
-                                            <span class="value">{{item | prettyFacetLabel | swapFacetLabels}}</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <!-- /facet selection controller -->
+                        <div data-source="{{appleseedsSearchSolrProxy}}"
+                            ng-controller="FacetSelectionController">
+                            <!-- facet selection controller -->
+                            <ul class="facet-panel"
+                                ng-show="items.length>0"
+                                ng-cloak>
+                                <li class="facet-heading"><p>Filtering By</p></li>
+                                <li>
+                                    <ul class="items unstyled">
+                                        <li class="facet" ng-repeat="item in items">
+                                            <i class="icon-tag"></i>
+                                            <a ng-click="remove($index)">
+                                                <span class="value">{{item | prettyFacetLabel | swapFacetLabels | umhsCleanSelectedGlossaryLabel}}</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <!-- /facet selection controller -->
+                            <ul class="facet-panel"
+                                ng-show="items.length==0">
+                                <li class="facet-heading"><p>No Filters Applied</p></li>
+                            </ul>
+                        </div>
 
                         <!-- chosen type facet controller -->
                         <ul id="type-panel-chosen" class="facet-panel"
