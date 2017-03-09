@@ -6,15 +6,12 @@
 'use strict';
 
 /*---------------------------------------------------------------------------*/
-/* FacetSelectionController                                                  */
+/* FieldCheckboxFacetController                                                  */
 
 /**
- * Facet field query controller. Fetches a list of facet values from the search
- * index for the specified field. When a facet value is selected by the user, a
- * facet constraint is added to the target query, If facets are mutually
- * exclusive, the 'hidden' variable is set to true to prevent the user from
- * selecting more values. When the facet constraint is removed 'hidden' is set
- * back to false.
+ * Field checkbox facet controller. Creates controls for checkboxes to be used as part of a facet query
+ * 
+ * Currently handles Gender facets "M" and "F"
  *
  * @param $scope Controller scope
  * @param $attrs
@@ -24,7 +21,10 @@
  * @param $window
  * @param SolrSearchService Solr search service
  */
-function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $routeParams, $window, SolrSearchService) {
+function FieldCheckboxFacetController($scope, $rootScope, $attrs, $location, $route, $routeParams, $window, SolrSearchService) {
+
+    // reset $scope.items on handleUpdate()
+    $scope.clearItems = false;
 
     // facet selections are mutually exclusive
     $scope.exclusive = true;
@@ -32,14 +32,27 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
     // the name of the query used to retrieve the list of facet values
     $scope.facetQuery = 'facetQuery';
 
+    // the operator used when joining multiple facet queries
+    $scope.facetQueryOperator = 'OR';
+
     // the list of facets
     $scope.facets = [];
 
     // the name of the field to facet
     $scope.field = '';
 
+    // TODO: refactor so that genderFacet is not hard coded
+    $scope.genderFacet = {
+        F: false,
+        M: false
+    };
+
     // the list of facet values
-    $scope.items = [];
+    //  Initialize to contain facets with value but no score
+    $scope.items = [
+        { value:"F", score: null},
+        { value:"M", score: null}
+    ];
 
     // the max number of items to display in the facet list
     $scope.maxItems = 300;
@@ -75,7 +88,19 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
     function FacetResult(Value, Score) {
         this.value = Value;
         this.score = Score;
-    }
+    };
+
+    function sortFacets(a, b){
+        var aValue = a.value;
+        var bValue = b.value;
+        if (aValue < bValue) {
+            return -1;
+        }
+        if (aValue > bValue) {
+            return 1;
+        }
+        return 0;
+    };
 
     /**
      * Add the selected facet to the facet constraint list.
@@ -110,14 +135,61 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         $event.preventDefault();
     };
 
+    $scope.change = function($event, Index, items) {
+        // create a new facet
+        var query = SolrSearchService.getQuery($scope.queryName);
+        if (query == undefined) {
+            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        }
+        var name = $scope.field;
+
+        // remove Chosen options that were manually created based on hash
+        jQuery(".temp-option").remove();
+
+        var values = "(";
+        for(var i in items){
+            var operator = "";
+            if(items.length>1) 
+                operator = $scope.facetQueryOperator;
+            // replace special characters with a space, then where there are two or more spaces, replace with a single space
+            
+            if(items[i] == true) {
+                var value = operator+"(" + i + ")";
+            } else {
+                continue;
+            }
+            values+=value;
+        }
+        values+=")";
+        var facet = query.createFacet(name, values);
+        var emptyFacet = query.createFacet(name,""); // for removal
+        
+        // if values is empty clear the facet query parameter
+        if (values == "()") {
+            query.addFacet(emptyFacet);
+        } else {
+            query.addFacet(facet);
+        }
+
+        // Removes query option "clear" before page refresh
+        query.removeOption("clear");
+
+        var hash = query.getHash();
+        $location.path(hash);
+        // @see https://github.com/angular/angular.js/issues/1179
+        //$event.preventDefault();
+    };
+
     /**
      * Handle update event. Get the query object then determine if there is a
      * facet query that corresponds with the field that this controller is
      * targeting.
      */
     $scope.handleUpdate = function() {
-        // clear current results
-        $scope.items = [];
+        if ($scope.clearItems == true) {
+            // clear current results
+            $scope.items = [];
+        }
         $scope.selected = false;
         var selected_values = [];
         // get the starting query
@@ -153,18 +225,21 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
             }
             // add facets to the item list if they have not already been
             // selected
-            for (i=0; i< facet_fields.length; i+=2) {
-                var value = results.facet_fields[$scope.field][i];
-                if (selected_values.indexOf(value) == -1) {
+
+            // TODO: if $scope.clearItems = false, the count will not update.  Find a way
+            //  to update $scope.items.count if $scope.items.value exists.
+            if ($scope.items.length == 0) {
+                for (i=0; i< facet_fields.length; i+=2) {
+                    var value = results.facet_fields[$scope.field][i];
                     var count = results.facet_fields[$scope.field][i+1];
                     var facet = new FacetResult(value,count);
                     if($scope.htmlTags.indexOf(facet.value)=== -1) {
-
                         $scope.items.push(facet);
-
                     }
                 }
             }
+
+            $scope.items.sort(sortFacets);
         }
     };
 
@@ -192,6 +267,24 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
             } else {
                 query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
             }
+
+            var facetResults = query.getFacet($scope.field);
+            if (query.getOption("clear") == "true" || facetResults == undefined) {
+                // uncheck checkboxes when results are cleared or no gender facets in query
+                for (var object in $scope.genderFacet) {
+                    $scope.genderFacet[object] = false;
+                }
+            } else {
+                for (var object in $scope.genderFacet) {
+                    // for saved states - check checkboxes for facets found in query
+                    if (facetResults.value.indexOf(object) > 0) {
+                        $scope.genderFacet[object] = true;
+                    }
+                }
+            }
+
+            
+
             query.setOption("facet", "true");
             query.setOption("facet.field", $scope.field);
             //query.setOption("facet.limit", $scope.maxItems);
@@ -201,6 +294,8 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
             query.setOption("wt", "json");
             SolrSearchService.setQuery($scope.facetQuery, query);
             SolrSearchService.updateQuery($scope.facetQuery);
+
+            
         });
     };
 
@@ -209,4 +304,4 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
 
 }
 // inject dependencies
-FieldFacetController.$inject = ['$scope', '$rootScope', '$attrs', '$location', '$route', '$routeParams', '$window', 'SolrSearchService'];
+FieldCheckboxFacetController.$inject = ['$scope', '$rootScope', '$attrs', '$location', '$route', '$routeParams', '$window', 'SolrSearchService'];

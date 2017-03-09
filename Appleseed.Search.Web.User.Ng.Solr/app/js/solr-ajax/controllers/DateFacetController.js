@@ -6,16 +6,12 @@
 'use strict';
 
 /*---------------------------------------------------------------------------*/
-/* FacetSelectionController                                                  */
+/* DateFacetController                                                        */
 
 /**
- * Facet field query controller. Fetches a list of facet values from the search
- * index for the specified field. When a facet value is selected by the user, a
- * facet constraint is added to the target query, If facets are mutually
- * exclusive, the 'hidden' variable is set to true to prevent the user from
- * selecting more values. When the facet constraint is removed 'hidden' is set
- * back to false.
- *
+ * Date facet controller filters a query by year range, displays controls to
+ * set the start/end dates.
+ * 
  * @param $scope Controller scope
  * @param $attrs
  * @param $location

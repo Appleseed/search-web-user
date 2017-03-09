@@ -22,7 +22,7 @@ module.directive('searchhints', function() {
                 delay: 500,
                 minLength: 3,
                 source: function(request, response) {
-                    var results = $.ui.autocomplete.filter(scope.hints, request.term);
+                    var results = jQuery.ui.autocomplete.filter(scope.hints, request.term);
                     response(results.slice(0, 10));
                 }
             });
@@ -56,7 +56,7 @@ module.directive('searchbox', function() {
                 minLength: 3,
                 source: function(request, response) {
                     // @todo execute a query against the index on the fly
-                    var results = $.ui.autocomplete.filter(scope.hints, request.term);
+                    var results = jQuery.ui.autocomplete.filter(scope.hints, request.term);
                     response(results.slice(0, 10));
                 }
             });

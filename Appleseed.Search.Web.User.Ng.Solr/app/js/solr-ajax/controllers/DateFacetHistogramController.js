@@ -9,7 +9,7 @@
 /* DateFacetHistogramController                                              */
 
 /**
- * Date facet controller filters a query by year range, displays controls to
+ * Date facet histogram controller filters a query by year range, displays controls to
  * set the start/end dates, displays a histogram control to both view and
  * filter date by year range.
  * @param $scope Controller scope

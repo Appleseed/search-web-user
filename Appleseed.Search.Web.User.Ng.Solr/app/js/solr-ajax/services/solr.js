@@ -82,9 +82,11 @@ function SolrQuery(Url) {
     // query response highlighting
     self.highlighting = {};
 
-
     // query response MoreLikeThis
     self.MoreLikeThis = {};
+
+    // suggestions
+    self.suggestions = {};
 
     // query options dictionary, where the key is the option name and the
     // value is the option value
@@ -109,8 +111,15 @@ function SolrQuery(Url) {
 
     // URL to the Solr core ex. http://example.com/solr/CORE
     self.solr = Url;
-    
-    self.excludeFromHash = [ "&json.wrf=JSON_CALLBACK", "&wt=json" ]; // excluded parameters from returned Solr hash
+
+    // stuff to exclude from hash to make it clearer
+    self.excludeFromHash = [ 
+                            "&json.wrf=JSON_CALLBACK", 
+                            "&wt=json",  
+                            "&sort=score%20desc", 
+                            "&clear=true"
+    ];
+                            // excluded parameters from returned Solr hash
 
 
     ///////////////////////////////////////////////////////////////////////////
@@ -169,7 +178,6 @@ function SolrQuery(Url) {
         return self.error;
     };
 
-
     /**
      * Get facet by name. Returns null if the facet could not be found.
      * @param Name
@@ -191,19 +199,19 @@ function SolrQuery(Url) {
     };
 
     /**
-     * Clear the facet list.
-     * @returns {List}
-     */
-    self.clearFacets = function() {
-        self.facets = [];
-    };
-
-    /**
      * Get the facet list.
      * @returns {List}
      */
     self.getFacets = function() {
         return self.facets;
+    };
+
+    /**
+     * Clear the facet list.
+     * @returns {List}
+     */
+    self.clearFacets = function() {
+        self.facets = [];
     };
 
     /**
@@ -231,15 +239,34 @@ function SolrQuery(Url) {
 
     /**
      * Get the query portion of the URL.
+     * param ForSolr Used when query will be passed into solr, adds additional parameters
      * @returns {String} Location query
      */
-    self.getQuery = function() {
+    self.getQuery = function(ForSolr) {
         // query
         var query = "q=" + self.query;
+        
         // near matching
+        // if it's a global search, then don't add ~
         if (self.nearMatch) {
-            query += "~";
+            if(self.query != "*:*" && self.query.indexOf('"') == -1) {
+                if(!ForSolr) {
+                  query += "~";
+                // When crafting the URL for solr, we want some extra parameters
+                } else {
+                  var queryTokens = self.query.split(' ');
+                  for(var i = 0; i < queryTokens.length; i++) {
+                    queryTokens[i] = queryTokens[i] + '~0.75 OR ' + queryTokens[i] + '^3';
+                  }
+
+                  query = 'q=' + queryTokens.join(' ');
+                }
+            }
+            else { 
+                query = query;
+            }
         }
+
         // query parameters
         for (var i=0; i<self.queryParameters.length; i++) {
             query += ' ' + self.queryParameters[i];
@@ -253,11 +280,22 @@ function SolrQuery(Url) {
         for (var key2 in self.options) {
             if (self.options.hasOwnProperty(key2)) {
                 var val = self.options[key2];
-                // added to be able to do adhoc facets
-                if (key2.indexOf("facet.query")==0){
-                    key2 = "facet.query";
+
+                // Facet field can be multivalued, needs special processing
+                if(key2 === 'facet.field') {
+                  for(var i = 0; i < val.length; i++) {
+                    query += '&' + key2 + '=' + val[i];
+                  }
+                } else {
+                  // added to be able to do adhoc facets
+                  if (key2.indexOf("facet.query")==0){
+                      key2 = "facet.query";
+                  } else if(key2.indexOf("suggest.dictionary")==0) {
+                      key2 = "suggest.dictionary";
+
+                  }
+                  query += "&" + key2 + "=" + val;
                 }
-                query += "&" + key2 + "=" + val;
             }
         }
         return query;
@@ -267,7 +305,14 @@ function SolrQuery(Url) {
      * Get the fully specified Solr query URL.
      */
     self.getSolrQueryUrl = function() {
-        return self.solr + "/select?" + encodeURI(self.getQuery());
+        return self.solr + "/select?" + encodeURI(self.getQuery(true));
+    };
+
+    /**
+     * Get the suggestions object
+     */
+    self.getSuggestions = function() {
+      return self.suggestions;
     };
 
     /**
@@ -369,6 +414,14 @@ function SolrQuery(Url) {
     };
 
     /**
+     * Set the suggestions values
+     * @param Suggestions
+     */
+    self.setSuggestions = function(Suggestions) {
+      self.suggestions = Suggestions;
+    };
+
+    /**
      * Set option. User queries should be set using the setUserQuery() and setUserQueryOption() functions.
      * @param Name
      * @param Value
@@ -382,7 +435,13 @@ function SolrQuery(Url) {
             } else {
                 self.options[Name] = "+" + Value;
             }
-        } else {
+        } else if (Name === 'facet.field') {
+          if(!self.options['facet.field']) {
+            self.options['facet.field'] = [];
+          }
+
+          self.options[Name].push(Value);
+        } else{
             self.options[Name] = Value;
         }
     };
@@ -679,9 +738,13 @@ m.provider('SolrSearchService', function solrSearchServiceProvider() {
          * @param QueryName Query name
          */
         svc.updateQuery = function(QueryName) {
+            var deferred = $q.defer();
+
             // get the named query, reset error state, get the query url
             var query = svc.queries[QueryName];
+            
             var url = query.getSolrQueryUrl();
+            
             $log.debug("GET " + QueryName + ": " + url);
 
             // execute the query
@@ -696,10 +759,16 @@ m.provider('SolrSearchService', function solrSearchServiceProvider() {
                     if (data.hasOwnProperty('facet_counts')) {
                         query.setFacetCounts(data.facet_counts);
                     }
+
+                    if (data.hasOwnProperty('suggest')) {
+                        query.setSuggestions(data.suggest);
+                    }
+
                     query.setResponse(data.response);
                     query.setResponseHeader(data.responseHeader);
                     // notify listeners of changes
                     $rootScope.$broadcast(QueryName);
+                    deferred.resolve(QueryName);
                 },
                 // error
                 function (result) {
@@ -712,13 +781,17 @@ m.provider('SolrSearchService', function solrSearchServiceProvider() {
                     response['docs'] = [];
                     query.setErrorMessage(msg);
                     query.setFacetCounts([]);
+                    query.setSuggestions({});
                     query.setHighlighting({});
                     query.setResponse(response);
                     query.setResponseHeader({});
                     // notify listeners of changes
                     $rootScope.$broadcast(QueryName);
+                    deferred.reject(QueryName);
                 }
             );
+
+            return deferred.promise;
         };
 
         // return the service instance

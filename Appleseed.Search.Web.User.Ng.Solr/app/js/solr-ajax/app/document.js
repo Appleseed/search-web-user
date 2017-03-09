@@ -8,7 +8,7 @@
 /*---------------------------------------------------------------------------*/
 /* Application                                                               */
 
-var app = angular.module('solr-ajax', ['ngRoute', 'Autocomplete', 'TextFilters', 'Solr', 'Utils','ngSanitize']);
+var app = angular.module('solr-ajax', ['ngRoute', 'SearchHints','Autocomplete', 'TextFilters', 'Solr', 'Utils','ngSanitize','countTo','localytics.directives']);
 
 /**
  * Define application routes.
@@ -18,9 +18,12 @@ app.config(['$routeProvider', function ($routeProvider) {
     $routeProvider.
         when('/:query', { event: "/query" }).
         otherwise({ event: "/" });
-
 }])
 .run(function($rootScope) {
-	$rootScope.appleseedsSearchSolrProxy = "http://search-index-solr:8983/solr/appleseed-public";
+	$rootScope.appleseedsSearchSolrProxy = "http://localhost:8983/solr/appleseed-public";
+    $rootScope.siteDomainPath = "http://url.org";
+    // the current webpage's hostname/ what is sent to solr as a filter query 
+    $rootScope.siteDomainHostname = $rootScope.siteDomainPath.substring(7,$rootScope.siteDomainPath.length);
+    // what gets shown on the html before the relative path. 
+    $rootScope.siteDomainAlias = "stg.url.org";
 });
-

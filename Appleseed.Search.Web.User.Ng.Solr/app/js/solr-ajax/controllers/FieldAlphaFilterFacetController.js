@@ -1,48 +1,34 @@
-/**
- * This file is subject to the terms and conditions defined in the
- * 'LICENSE.txt' file, which is part of this source code package.
- */
 
 'use strict';
 
 /*---------------------------------------------------------------------------*/
-/* FacetSelectionController                                                  */
+/* FieldAlphaFilterFacetController                                                   */
 
 /**
- * Facet field query controller. Fetches a list of facet values from the search
- * index for the specified field. When a facet value is selected by the user, a
- * facet constraint is added to the target query, If facets are mutually
- * exclusive, the 'hidden' variable is set to true to prevent the user from
- * selecting more values. When the facet constraint is removed 'hidden' is set
- * back to false.
- *
+ * Alpha Field Facet Filter controller. It renders an A-Z filter which is then tied to the search query.
  * @param $scope Controller scope
- * @param $attrs
- * @param $location
- * @param $route
- * @param $routeParams
- * @param $window
  * @param SolrSearchService Solr search service
  */
-function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $routeParams, $window, SolrSearchService) {
+function FieldAlphaFilterFacetController($scope,$rootScope, $attrs, $location, $route, $routeParams, $window, SolrSearchService) {
+    // $scope,$rootScope, $attrs, $location, $route, $routeParams, $window, SolrSearchService
+    //ori ($scope, $attrs, SolrSearchService)
+    // parameters
 
-    // facet selections are mutually exclusive
-    $scope.exclusive = true;
+    // the alphabet 
+    var str = "abcdefghijklmnopqrstuvwxyz";
+    $scope.alphabet = str.toUpperCase().split("");
+
+    // the active letter    
+    $scope.activeLetter = '';
 
     // the name of the query used to retrieve the list of facet values
-    $scope.facetQuery = 'facetQuery';
+    $scope.facetQuery = 'alphaFilterQuery';
+
+    // the name of the field to filter
+    $scope.field = '';
 
     // the list of facets
     $scope.facets = [];
-
-    // the name of the field to facet
-    $scope.field = '';
-
-    // the list of facet values
-    $scope.items = [];
-
-    // the max number of items to display in the facet list
-    $scope.maxItems = 300;
 
     // the name of the search query that we are faceting. we watch this query
     // to determine what to present in the facet list
@@ -54,18 +40,46 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
     // the url to the solr core
     $scope.source = undefined;
 
-    //html tags list
-    $scope.htmlTags =[ "a", "abbr", "acronym", "address", "applet", "area", "b", "base", "basefont", "bdo",
-        "big", "blockquote", "body", "br", "button", "caption", "center", "cite", "code", "col", "colgroup",
-        "dd", "del", "dfn", "dir", "div", "dl", "dt", "em", "embed","fieldset", "font", "form", "frame", "frameset",
-        "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hr", "html", "i", "iframe", "img", "input",
-        "ins", "isindex", "kbd", "label", "legend", "li", "link", "map","marquee", "menu", "meta", "noframes", "noscript",
-        "object", "ol", "optgroup", "option", "p", "param", "pre", "q", "s", "samp", "script", "select", "small",
-        "span", "strike", "strong", "style", "sub", "sup", "table", "tbody", "td", "textarea", "tfoot", "th",
-        "thead", "title", "tr", "tt", "u", "ul", "var", "class", "src", "href","page","id"];
+    /**
+     * Set the active letter (used for showing which one is selected)
+     * @param Index Index of user selected filter. 
+     */
+    $scope.setActiveLetter = function(letter) {
+        $scope.activeLetter = letter;
+    }
 
+    /**
+     * Clear the filter 
+     */
+    $scope.clearFilter = function($event){
+        // clear the selected letter
+        $scope.selected = false;
+        $scope.setActiveLetter('');
 
-    ///////////////////////////////////////////////////////////////////////////
+         // create a new facet
+        var query = SolrSearchService.getQuery($scope.queryName);
+        if (query == undefined) {
+            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        }
+        
+        var name = $scope.field;
+        $scope.facets = query.getFacets();
+        var facets = $scope.facets;
+        //console.dir(facets);
+        for (var i=0;i<facets.length;i++) {
+            // if you found the same field here before, remove it
+            if (facets[i].field == name) {
+                query.removeFacetByIndex(i);
+            } 
+        }
+        
+        // change window location
+        var hash = query.getHash();
+        $location.path(hash);
+        if ($event) {
+            $event.preventDefault();
+        }
+    }
 
     /**
      * Facet result
@@ -78,34 +92,50 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
     }
 
     /**
-     * Add the selected facet to the facet constraint list.
+     * Add the filter to the query 
      * @param $event Event
-     * @param Index Index of user selected facet. This facet will be added to
-     * the search list.
+     * @param Index Index of user selected filter.
      */
-    $scope.add = function($event, Index) {
+    $scope.filterByLetter = function($event, Index) {
+
+        // activate the selected letter
+        $scope.selected = true;
+        $scope.setActiveLetter(Index);
+
         // create a new facet
         var query = SolrSearchService.getQuery($scope.queryName);
         if (query == undefined) {
             query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
         }
+        
         var name = $scope.field;
-        // ISSUE #27 replace all space characters with * to ensure that Solr matches
-        // on the space value
+        
+        // REVIEW - use a wildcard to filter values 
+        var value = "(" + Index + "*)";
 
-        //var value = "(" + '"' + $scope.items[Index].value.split(' ').join('*') + '"' + ")";
-        // REVIEW: Getting rid of quotes - 12/20/16
-        //TODO replace " : " with a "*" and then this operation that replaces " " w/ "*"
-        var value = "(" + $scope.items[Index].value.replace(' : ', ' ').split(' ').join('*') + ")";
+        $scope.facets = query.getFacets();
+        var facets = $scope.facets;
 
+        // our new facet 
         var facet = query.createFacet(name, value);
-        // check to see if the selected facet is already in the list
-        if ($scope.facets.indexOf(facet) == -1) {
+        // index of the facet 
+        var facetIndex = $scope.facets.indexOf(facet);
+        
+        if (facetIndex == -1) {
+            // REVIEW - for some reason the indexOf above is not detecting so walking through this manually
+            for (var i=0;i<facets.length;i++) {
+                // if you found the same field here before, remove it
+                if (facets[i].field == facet.field) {
+                    query.removeFacetByIndex(i);
+                } 
+            }
+            // add a new facet 
             query.addFacet(facet);
             // change window location
             var hash = query.getHash();
             $location.path(hash);
-        }
+        } 
+
         // @see https://github.com/angular/angular.js/issues/1179
         $event.preventDefault();
     };
@@ -147,42 +177,32 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         if (results && results.hasOwnProperty('facet_fields')) {
             // trim the result list to the maximum item count
             if (results.facet_fields[$scope.field].length > $scope.maxItems * 2) {
-                var facet_fields = results.facet_fields[$scope.field].splice($scope.maxItems,results.facet_fields[$scope.field].length);
+                var facet_fields = results.facet_fields[$scope.field].splice(0,$scope.maxItems);
             } else {
                 var facet_fields = results.facet_fields[$scope.field];
             }
-            // add facets to the item list if they have not already been
-            // selected
-            for (i=0; i< facet_fields.length; i+=2) {
-                var value = results.facet_fields[$scope.field][i];
-                if (selected_values.indexOf(value) == -1) {
-                    var count = results.facet_fields[$scope.field][i+1];
-                    var facet = new FacetResult(value,count);
-                    if($scope.htmlTags.indexOf(facet.value)=== -1) {
-
-                        $scope.items.push(facet);
-
-                    }
-                }
-            }
         }
+        $scope.facets = query.getFacets();
     };
-
+    
     /**
      * Initialize the controller.
      */
     $scope.init = function() {
+        
         // apply configured attributes
         for (var key in $attrs) {
             if ($scope.hasOwnProperty(key)) {
                 $scope[key] = $attrs[key];
             }
         }
+
         // handle facet list updates
         $scope.facetQuery = $scope.field + "Query";
         $scope.$on($scope.facetQuery, function () {
             $scope.handleUpdate();
         });
+
         // update the list of facets on route change
         $scope.$on("$routeChangeSuccess", function() {
             // create a query to get the list of facets
@@ -192,15 +212,22 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
             } else {
                 query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
             }
+
+            if (query.getOption("clear") == "true" || query.getFacet($scope.field) == undefined) {
+                $scope.clearFilter();
+            }
+            
             query.setOption("facet", "true");
             query.setOption("facet.field", $scope.field);
             //query.setOption("facet.limit", $scope.maxItems);
             query.setOption("facet.mincount", "1");
-            query.setOption("facet.sort", "count");
+            //query.setOption("facet.sort", "count");
             query.setOption("rows", "0");
             query.setOption("wt", "json");
             SolrSearchService.setQuery($scope.facetQuery, query);
             SolrSearchService.updateQuery($scope.facetQuery);
+
+            $scope.facets = query.getFacets();
         });
     };
 
@@ -208,5 +235,6 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
     $scope.init();
 
 }
-// inject dependencies
-FieldFacetController.$inject = ['$scope', '$rootScope', '$attrs', '$location', '$route', '$routeParams', '$window', 'SolrSearchService'];
+
+// inject controller dependencies
+FieldAlphaFilterFacetController.$inject = ['$scope', '$rootScope', '$attrs', '$location', '$route', '$routeParams', '$window', 'SolrSearchService'];

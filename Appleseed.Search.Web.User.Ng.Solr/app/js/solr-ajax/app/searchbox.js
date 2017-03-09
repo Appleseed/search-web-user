@@ -18,4 +18,8 @@ app.config(['$routeProvider', function($routeProvider) {
     $routeProvider.
         when('/:query', { event: "/query" }).
         otherwise({ event: "/" });
-}]);
+}])
+.run(function($rootScope) {
+	$rootScope.appleseedsSearchSolrProxy = "http://localhost:8983/solr/appleseed-public";
+});
+

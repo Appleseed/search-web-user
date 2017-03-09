@@ -114,6 +114,10 @@ function SearchBoxController($scope, $rootScope, $attrs, $location, $route, $rou
         query.solr = $rootScope.appleseedsSearchSolrProxy;
         query.setNearMatch($scope.nearMatch);
         query.setUserQuery($scope.userquery);
+        
+        //REVIEW - added to clear facets when user searches from the search box 
+        query.clearFacets();
+
         // update the window location
         var hash = query.getHash();
         if ($scope.redirect) {

@@ -9,15 +9,10 @@
 'use strict';
 
 /*---------------------------------------------------------------------------*/
-/* FacetSelectionController                                                  */
+/* DatePickerFacetController                                                  */
 
 /**
- * Facet field query controller. Fetches a list of facet values from the search
- * index for the specified field. When a facet value is selected by the user, a
- * facet constraint is added to the target query, If facets are mutually
- * exclusive, the 'hidden' variable is set to true to prevent the user from
- * selecting more values. When the facet constraint is removed 'hidden' is set
- * back to false.
+ * 
  *
  * @param $scope Controller scope
  * @param $attrs
@@ -164,10 +159,10 @@ function DatePickerFacetController($scope,$rootScope, $attrs, $location, $route,
 
     $scope.submit = function() {
 
-        var startDate = new Date($('#sDate').val());
+        var startDate = new Date(jQuery('#sDate').val());
         $scope.startDate = startDate.getFullYear() + '-' + ("0" + (startDate.getMonth() + 1)).slice(-2) + '-' + ("0" + startDate.getDate()).slice(-2);
 
-        var endDate = new Date($('#eDate').val());
+        var endDate = new Date(jQuery('#eDate').val());
         $scope.endDate = endDate.getFullYear() + '-' + ("0" + (endDate.getMonth() + 1)).slice(-2) + '-' + ("0" + endDate.getDate()).slice(-2);
 
         if ($scope.startDate <= $scope.endDate) {

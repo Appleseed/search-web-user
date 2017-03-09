@@ -25,11 +25,20 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     $scope.documents = [];
 
     // the number of search results to display per page
-    $scope.documentsPerPage = 10;
+    $scope.documentsPerPage = 20;
+
+    $scope.siteDomainPath = $rootScope.siteDomainPath;
+    // the current webpage's hostname/ what is sent to solr as a filter query 
+    $scope.siteDomainHostname = $rootScope.siteDomainHostname;
+    // what gets shown on the html before the relative path. 
+    $scope.siteDomainAlias = $rootScope.siteDomainAlias;
 
     // flag for when the controller has submitted a query and is waiting on a
     // response
     $scope.loading = false;
+
+    // set old count variable for doc counter
+    $scope.oldTotalResults = 0;
 
     // the current search result page
     $scope.page = 0;
@@ -42,6 +51,24 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
 
     // the number of pages in a navigation set
     $scope.pagesPerSet = 10;
+
+    // flag for resetting location on page refresh
+    $scope.resetLocation = true;
+
+    // flag for if infinite scroll is enabled
+    $scope.scrollInfinite = false;
+
+    // flag for when the controller has submitted a load more query and is waiting on a
+    // response
+    $scope.scrollLoading = false;
+
+    // amount of times that the infiniscroll has been called
+    $scope.scrollPage = 1;
+
+    // how much to increment the infiniscroll results
+    $scope.scrollPageIncrement = 20;
+
+    $scope.sortOption = "rel";
 
     // the query name
     $scope.queryName = SolrSearchService.defaultQueryName;
@@ -67,6 +94,9 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     // user query
     $scope.userquery = '';
 
+    // show addl locations
+    $scope.isVisible = [];
+
     ///////////////////////////////////////////////////////////////////////////
 
     /**
@@ -79,6 +109,11 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
         this.number = Num;
         this.isCurrent = false;
     }
+
+    // replace special characters with a space, then where there are two or more spaces, replace with a single space
+    function replaceSpecialChars(value) {
+        return value.replace(/[\&\:\(\)\[\\\/]/g, ' ').replace(/\s{2,}/g, ' ').split(' ').join('*');
+    };
 
     /**
      * Set the results page number.
@@ -99,29 +134,65 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     };
 
     /**
+     * Retreive more results
+     * @param Start Index of starting document
+     */
+    $scope.loadMoreResults = function(Start) {
+        $scope.scrollInfinite = true;
+        var query = SolrSearchService.getQuery($scope.queryName);
+        query.setOption('start', 0);
+        query.setOption('rows', $scope.scrollPage*$scope.scrollPageIncrement);
+        
+        if ($scope.updateLocationOnChange) {
+            var hash = query.getHash();
+            $location.path(hash);
+            $scope.documentsPerPage += $scope.scrollPageIncrement;
+            $scope.scrollPage++;
+            //$window.scrollTo(0, 0);
+        } else {
+            $scope.loading = true;
+            $scope.scrollLoading = true;
+            SolrSearchService.updateQuery($scope.queryName);
+        }
+        
+    };
+
+    /**
      * Update the controller state.
      */
     $scope.handleUpdate = function() {
         // clear current results
         $scope.documents = [];
         $scope.loading = false;
+        $scope.scrollLoading = false;
         // get new results
         var results = SolrSearchService.getResponse($scope.queryName);
         if (results && results.docs) {
+            if (results.numFound !== $scope.totalResults) {
+                $scope.oldTotalResults = $scope.totalResults;
+            }
+
+
+            // get query
+            var query = SolrSearchService.getQuery($scope.queryName);
+
             $scope.totalResults = results.numFound;
             // calculate the total number of pages and sets
             $scope.totalPages = Math.ceil($scope.totalResults / $scope.documentsPerPage);
             $scope.totalSets = Math.ceil($scope.totalPages / $scope.pagesPerSet);
+
             // add new results
             for (var i=0;i<results.docs.length && i<$scope.documentsPerPage;i++) {
                 // clean up document fields
                 results.docs[i].fromDate = Utils.formatDate(results.docs[i].fromDate);
                 results.docs[i].toDate = Utils.formatDate(results.docs[i].toDate);
+
                 // add to result list
                 $scope.documents.push(results.docs[i]);
             }
         } else {
             $scope.documents = [];
+            $scope.oldTotalResults = 0;
             $scope.totalResults = 0;
             $scope.totalPages = 1;
             $scope.totalSets = 1;
@@ -153,12 +224,16 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
             if ($scope.query) {
                 // reset state
                 $scope.loading = false;
+                $scope.scrollLoading = false;
                 // get the current query
                 var query = SolrSearchService.getQueryFromHash($scope.query, $rootScope.appleseedsSearchSolrProxy);
                 // if there is a data source specified, override the default
                 if ($scope.source) {
                     query.solr = $scope.source;
                 }
+                // set $scope.sortOption based on query sort option.
+                //$scope.setSortOption(query);
+
                 query.solr = $rootScope.appleseedsSearchSolrProxy;
                 query.setOption("rows",$scope.documentsPerPage);
                 // set the display values to match those in the query
@@ -166,14 +241,121 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
                 // update query results
                 SolrSearchService.setQuery($scope.queryName, query);
                 $scope.loading = true;
+                $scope.scrollLoading = true;
                 SolrSearchService.updateQuery($scope.queryName);
+            }
+            for (var item in $scope.isVisible) {
+                $scope.isVisible[item] = false;
             }
         });
         // handle update events from the search service
         $scope.$on($scope.queryName, function () {
             $scope.handleUpdate();
         });
+
+        $scope.initialSearch('asc');
     };
+
+    /**
+     * Sets the alpha search to sort on last name and can be flipped ( asc/desc) . 
+     * Alternatively also used to start the initial search. 
+     */
+    $scope.initialSearch = function(sortOrder) {
+        // console.log("in initial alpha search");
+
+         // clean up the user query
+        var trimmed = Utils.trim($scope.userquery);
+        if (trimmed === '') {
+            $scope.userquery = "*:*";
+        }
+        // build the query string
+        var query = SolrSearchService.getQuery($scope.queryName);
+        var hash = $location.$$path.substring(1);
+        if (hash && $scope.resetLocation) {
+            query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);
+        } else if (query == undefined) {
+            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        }
+        
+        query.solr = $rootScope.appleseedsSearchSolrProxy;
+        
+        /*
+        if(sortOrder==='asc'|| sortOrder==='desc'){
+            query.setOption("sort", "glossary_sort "+sortOrder);
+        } else {
+            //always start with alpha search in this initialSearch method
+            query.setOption("sort", "glossary_sort asc");
+        }*/
+
+        query.setNearMatch($scope.nearMatch);
+        query.setUserQuery($scope.userquery);
+        
+        SolrSearchService.setQuery($scope.queryName, query);
+        SolrSearchService.updateQuery($scope.queryName);
+        // the onRouteChange event handler will take care of the update
+
+        // if created from sort event, then do the refresh thing
+        if(sortOrder!='false'){
+            // update the window location
+            var hash = query.getHash();
+            if ($scope.redirect) {
+                $window.location.href = $scope.redirect + '#' + hash;
+            } else {
+                $location.path(hash);
+            }
+        }
+        
+    }
+
+     /**
+     * Sets the search sorting to score or relevance
+     */
+    $scope.relevantSearch = function() {
+        // console.log("in relevant search");
+         // clean up the user query
+        var trimmed = Utils.trim($scope.userquery);
+        if (trimmed === '') {
+            $scope.userquery = "*:*";
+        }
+        // build the query string
+        var query = SolrSearchService.getQuery($scope.queryName);
+        if (query == undefined) {
+            query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
+        }
+        query.solr = $rootScope.appleseedsSearchSolrProxy;
+        //query.setOption("sort", "score desc");
+        query.setNearMatch($scope.nearMatch);
+        query.setUserQuery($scope.userquery);
+
+        SolrSearchService.setQuery($scope.queryName, query);
+        SolrSearchService.updateQuery($scope.queryName);
+
+        // update the window location
+        var hash = query.getHash();
+        if ($scope.redirect) {
+            $window.location.href = $scope.redirect + '#' + hash;
+        } else {
+            $location.path(hash);
+        }
+    }
+
+    /**
+     * Depending on the selection runs the proper sortOption with methods
+     */
+    $scope.sortOptionChange = function(){
+        switch ($scope.sortOption) {
+            case "rel":
+                $scope.relevantSearch();
+                break;
+            case "asc":
+                $scope.initialSearch("asc");
+                break;
+            case "desc":
+                $scope.initialSearch("desc");
+            default:
+                $scope.initialSearch("desc");
+        }
+    }
 
     /**
      * Update page index for navigation of search results. Pages are presented
@@ -217,6 +399,21 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
             var nextPage = new Page("»", nextSet);
             $scope.pages.push(nextPage);
         }
+    };
+
+    $scope.setSortOption = function (query) {
+        if (query.getOption("sort") == "glossary_sort asc") {
+            $scope.sortOption = "asc";
+        } else if (query.getOption("sort") == "glossary_sort desc") {
+            $scope.sortOption = "desc";
+        } else {
+            $scope.sortOption = "rel";
+        }
+    };
+
+    $scope.showMoreLocations = function(item) {
+        //If DIV is visible it will be hidden and vice versa.
+        $scope.isVisible[item] = !$scope.isVisible[item];
     };
 
     // initialize the controller

@@ -6,16 +6,11 @@
 'use strict';
 
 /*---------------------------------------------------------------------------*/
-/* FacetSelectionController                                                  */
+/* DateRangeFacetController                                                  */
 
 /**
- * Facet field query controller. Fetches a list of facet values from the search
- * index for the specified field. When a facet value is selected by the user, a
- * facet constraint is added to the target query, If facets are mutually
- * exclusive, the 'hidden' variable is set to true to prevent the user from
- * selecting more values. When the facet constraint is removed 'hidden' is set
- * back to false.
- *
+ * Date range facet controller filters a query by various date ranges.
+ * 
  * @param $scope Controller scope
  * @param $attrs
  * @param $location
@@ -206,4 +201,4 @@ function DateRangeFacetController($scope,$rootScope, $attrs, $location, $route, 
 }
 
 // inject dependencies
-DateFacetController.$inject = ['$scope','$rootScope', '$attrs', '$location', '$route', '$routeParams', '$window', 'SolrSearchService'];
+DateRangeFacetController.$inject = ['$scope','$rootScope', '$attrs', '$location', '$route', '$routeParams', '$window', 'SolrSearchService'];
