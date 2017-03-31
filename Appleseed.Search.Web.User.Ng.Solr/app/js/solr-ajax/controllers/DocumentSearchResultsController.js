@@ -97,6 +97,9 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     // show addl locations
     $scope.isVisible = [];
 
+    // measured search analytics key
+    $scope.measuredSearchKey = '';
+
     ///////////////////////////////////////////////////////////////////////////
 
     /**
@@ -111,8 +114,9 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     }
 
     // replace special characters with a space, then where there are two or more spaces, replace with a single space
+    // also makes sure that if there is a space at the start or end of the string, it gets removed.
     function replaceSpecialChars(value) {
-        return value.replace(/[\&\:\(\)\[\\\/]/g, ' ').replace(/\s{2,}/g, ' ').split(' ').join('*');
+        return value.replace(/[\&\:\(\)\[\\\/]/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s/, '').replace(/\s$/, '').split(' ').join('*');
     };
 
     /**
@@ -172,7 +176,6 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
                 $scope.oldTotalResults = $scope.totalResults;
             }
 
-
             // get query
             var query = SolrSearchService.getQuery($scope.queryName);
 
@@ -180,6 +183,9 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
             // calculate the total number of pages and sets
             $scope.totalPages = Math.ceil($scope.totalResults / $scope.documentsPerPage);
             $scope.totalSets = Math.ceil($scope.totalPages / $scope.pagesPerSet);
+
+            // Measured Search: Search analytics function call
+            //$scope.trackSearch();
 
             // add new results
             for (var i=0;i<results.docs.length && i<$scope.documentsPerPage;i++) {
@@ -196,10 +202,44 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
             $scope.totalResults = 0;
             $scope.totalPages = 1;
             $scope.totalSets = 1;
+
+            $scope.loading = true;
+            $scope.scrollLoading = true;
         }
         // update the page index
         $scope.updatePageIndex();
     };
+
+    /// MEASURED SEARCH - ANALYTICS BEGIN ///
+    $scope.trackSearch = function(){
+        if(typeof _msq!=='undefined'){
+            if($scope.userquery)
+            _msq.push(['track', {
+                key:        $scope.measuredSearchKey,
+                query:      $scope.userquery,
+                shownHits:  $scope.documentsPerPage,
+                totalHits:  $scope.totalResults,
+                pageNo:     $scope.scrollPage
+            }]);
+        }
+    }
+
+    $scope.trackSearchClick = function(docPosition, doc){
+        if(typeof _msq!=='undefined'){
+            _msq.push(['trackClick', { 
+                key:        $scope.measuredSearchKey,
+                query:      $scope.userquery,
+                cDocId:     doc.physicianProfileURL,
+                cDocTitle:  doc.physicianName[0],
+                position:   docPosition+1, //may be zero if first one 
+                pageNo:     $scope.scrollPage,
+                pageUrl:    doc.physicianProfileURL,
+                showHits:   $scope.documentsPerPage,
+                totalHits:  $scope.totalResults
+            }]);
+        }
+    }
+    /// MEASURED SEARCH - ANALYTICS END ///
 
     /**
      * Initialize the controller.
@@ -232,7 +272,7 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
                     query.solr = $scope.source;
                 }
                 // set $scope.sortOption based on query sort option.
-                //$scope.setSortOption(query);
+                $scope.setSortOption(query);
 
                 query.solr = $rootScope.appleseedsSearchSolrProxy;
                 query.setOption("rows",$scope.documentsPerPage);
@@ -243,6 +283,20 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
                 $scope.loading = true;
                 $scope.scrollLoading = true;
                 SolrSearchService.updateQuery($scope.queryName);
+
+                var hash = query.getHash();
+                if (hash.includes("sort=score desc")) {
+                    //console.log("use score sort");
+                    //console.log(hash);
+                    //DONE - if sort is defined, the default behavior will kick in which is a relevant search
+                    //$scope.relevantSearch();
+                } else {
+                    //console.log("use glossary_sort");
+                    //console.log(hash);
+                    //DONE - if sort is not score, do alpha/glossary sort 
+                    $scope.initialSearch('asc');
+                }
+                        
             }
             for (var item in $scope.isVisible) {
                 $scope.isVisible[item] = false;
@@ -252,8 +306,7 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
         $scope.$on($scope.queryName, function () {
             $scope.handleUpdate();
         });
-
-        $scope.initialSearch('asc');
+        
     };
 
     /**
@@ -276,16 +329,19 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
         } else if (query == undefined) {
             query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
         }
-        
+
+        // retrieve user query upon page load
+        $scope.userquery = query.getUserQuery();
+        query.setUserQuery($scope.userquery);
+
         query.solr = $rootScope.appleseedsSearchSolrProxy;
         
-        /*
         if(sortOrder==='asc'|| sortOrder==='desc'){
             query.setOption("sort", "glossary_sort "+sortOrder);
         } else {
             //always start with alpha search in this initialSearch method
             query.setOption("sort", "glossary_sort asc");
-        }*/
+        }
 
         query.setNearMatch($scope.nearMatch);
         query.setUserQuery($scope.userquery);
