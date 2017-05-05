@@ -68,7 +68,7 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     // how much to increment the infiniscroll results
     $scope.scrollPageIncrement = 20;
 
-    $scope.sortOption = "rel";
+    $scope.sortOption = null;
 
     // the query name
     $scope.queryName = SolrSearchService.defaultQueryName;
@@ -294,7 +294,7 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
                     //console.log("use glossary_sort");
                     //console.log(hash);
                     //DONE - if sort is not score, do alpha/glossary sort 
-                    $scope.initialSearch('asc');
+                    //$scope.initialSearch('asc');
                 }
                         
             }
@@ -409,7 +409,7 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
             case "desc":
                 $scope.initialSearch("desc");
             default:
-                $scope.initialSearch("desc");
+                break;
         }
     }
 
@@ -458,7 +458,9 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     };
 
     $scope.setSortOption = function (query) {
-        if (query.getOption("sort") == "glossary_sort asc") {
+        if ($scope.sortOption == null) {
+            // Do nothing
+        } else if (query.getOption("sort") == "glossary_sort asc") {
             $scope.sortOption = "asc";
         } else if (query.getOption("sort") == "glossary_sort desc") {
             $scope.sortOption = "desc";
