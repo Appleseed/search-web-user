@@ -7,7 +7,7 @@
             "request": "launch",
             "port": 9222,
             "url": "http://localhost:8000/documents.html",
-            "webRoot": "${workspaceRoot}/app"
+            "webRoot": "${workspaceRoot}/Appleseed.Search.Web.User.Ng.Solr/app"
         },
         {
             "name": "Attach documents.html (solr)",
@@ -15,7 +15,7 @@
             "request": "attach",
             "port": 9222,
             "url": "http://localhost:8000/documents.html#/q=*:*&fl=*&json.wrf=JSON_CALLBACK&rows=10&wt=json&sort=glossary_sort%20asc",
-            "webRoot": "${workspaceRoot}/app"
+            "webRoot": "${workspaceRoot}/Appleseed.Search.Web.User.Ng.Solr/app"
         },
     ]
 }
