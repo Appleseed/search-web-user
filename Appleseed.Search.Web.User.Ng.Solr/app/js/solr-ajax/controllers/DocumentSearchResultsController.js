@@ -68,6 +68,7 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
     // how much to increment the infiniscroll results
     $scope.scrollPageIncrement = 20;
 
+    // default sort option.  Set to null to prevent default sorting OR if sorting is not defined in the index.
     $scope.sortOption = null;
 
     // the query name
@@ -289,12 +290,12 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
                     //console.log("use score sort");
                     //console.log(hash);
                     //DONE - if sort is defined, the default behavior will kick in which is a relevant search
-                    //$scope.relevantSearch();
+                    $scope.relevantSearch();
                 } else {
                     //console.log("use glossary_sort");
                     //console.log(hash);
                     //DONE - if sort is not score, do alpha/glossary sort 
-                    //$scope.initialSearch('asc');
+                    $scope.initialSearch($scope.sortOption);
                 }
                         
             }
@@ -336,7 +337,9 @@ function DocumentSearchResultsController($scope, $rootScope, $attrs, $location, 
 
         query.solr = $rootScope.appleseedsSearchSolrProxy;
         
-        if(sortOrder==='asc'|| sortOrder==='desc'){
+        if (sortOrder == null) {
+            // do nothing
+        } else if(sortOrder==='asc'|| sortOrder==='desc'){
             query.setOption("sort", "glossary_sort "+sortOrder);
         } else {
             //always start with alpha search in this initialSearch method
