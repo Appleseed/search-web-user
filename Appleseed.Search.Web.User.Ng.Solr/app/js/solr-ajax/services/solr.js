@@ -253,14 +253,14 @@ function SolrQuery(Url) {
                 if(!ForSolr) {
                   query += "~";
                 // When crafting the URL for solr, we want some extra parameters
-                } else {
+                } /*else {
                   var queryTokens = self.query.split(' ');
                   for(var i = 0; i < queryTokens.length; i++) {
                     queryTokens[i] = queryTokens[i] + '~0.75 OR ' + queryTokens[i] + '^3';
                   }
 
                   query = 'q=' + queryTokens.join(' ');
-                }
+                }*/
             }
             else { 
                 query = query;
