@@ -78,7 +78,7 @@
             <div class="container-fluid">
                 <div class="row-fluid">
                     <div class="search-box span5">
-
+                        
                         <form ng-controller="SearchBoxController"
                               ng-submit="handleSubmit()"
                               data-near-match="true"
@@ -87,8 +87,9 @@
                             <input name="q" type="text" placeholder="Keyword or placename" ng-model="userquery" searchbox />
                             <input class="search-input" name="submit" type="submit" value="Search" ng-click="handleSubmit()" searchbutton />
                         </form>
+                        
                         <!--
-                         <searchboxnew id="searchbox"
+                         <searchbox id="searchbox"
                            data-near-match="true"
                            data-placeholder="placeholder"
                            data-max-hints="3"
