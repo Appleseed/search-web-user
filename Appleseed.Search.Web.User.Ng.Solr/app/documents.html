@@ -82,7 +82,7 @@
                         <form ng-controller="SearchBoxController"
                               ng-submit="handleSubmit()"
                               data-near-match="true"
-                              data-search-hints-field="spell"
+                              data-search-hints-field=""
                               data-source="{{appleseedsSearchSolrProxy}}">
                             <input name="q" type="text" placeholder="Keyword or placename" ng-model="userquery" searchbox />
                             <input class="search-input" name="submit" type="submit" value="Search" ng-click="handleSubmit()" searchbutton />
