@@ -82,7 +82,7 @@
                         <form ng-controller="SearchBoxController"
                               ng-submit="handleSubmit()"
                               data-near-match="true"
-                              data-search-hints-field="spell"
+                              data-search-hints-field=""
                               data-source="{{appleseedsSearchSolrProxy}}">
                             <input name="q" type="text" placeholder="Keyword or placename" ng-model="userquery" searchbox />
                             <input class="search-input" name="submit" type="submit" value="Search" ng-click="handleSubmit()" searchbutton />
@@ -355,7 +355,7 @@
                                 <h4>No results were found.</h4>
                             </div>
 
-                            <div class="pagination" ng-hide="error" ng-cloak>
+                            <div class="pagination" ng-hide="error || userquery &&!loading && documents.length == 0" ng-cloak>
                                 <ul ng-show="totalResults > documentsPerPage">
                                     <li ng-repeat="page in pages">
                                         <a ng-class="{iscurrent:page.isCurrent}" ng-click="$parent.handleSetPage(page.number)">{{page.name}}</a>
@@ -403,20 +403,22 @@
 
                             </article>
 
-                            <div class="pagination" ng-hide="error" ng-show="scrollInfinite" ng-cloak>  
+                            <!--
+                            <div class="pagination" ng-hide="error || userquery &&!loading && documents.length == 0" ng-show="scrollInfinite" ng-cloak>  
                                 <ul ng-show="totalResults > documentsPerPage">
                                     <li>
                                         <a ng-click="loadMoreResults(scrollPageIncrement)">Load {{scrollPageIncrement}} more of {{totalResults-documentsPerPage}} Results</a>
                                     </li>
                                 </ul>
                             </div>
+                            -->
                             
                             <div class="loading" ng-show="scrollLoading && scrollInfinite" ng-cloak>
                                 <p>Loading more search results ...</p>
                                 <img src="img/ajax-loader-bar.gif" alt="Loading more search results" />
                             </div>
 
-                            <div class="pagination" ng-hide="error" ng-cloak>
+                            <div class="pagination" ng-hide="error || userquery &&!loading && documents.length == 0" ng-cloak>
                                 <ul ng-show="totalResults > documentsPerPage">
                                     <li ng-repeat="page in pages">
                                         <a ng-class="{iscurrent:page.isCurrent}" ng-click="$parent.handleSetPage(page.number)">{{page.name}}</a>
