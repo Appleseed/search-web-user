@@ -128,6 +128,9 @@ function SearchBoxController($scope, $rootScope, $attrs, $location, $route, $rou
         } else {
             $location.path(hash);
         }
+        if ($scope.userquery == "*:*") {
+            $scope.userquery = "";
+        }
     };
 
     /**
@@ -176,6 +179,9 @@ function SearchBoxController($scope, $rootScope, $attrs, $location, $route, $rou
                 $scope.userquery = query.getUserQuery();
             } else {
                 $scope.userquery = hash;
+            }
+            if ($scope.userquery == "*:*") {
+                $scope.userquery = "";
             }
         });
         // create a query to fetch the list of search hints
