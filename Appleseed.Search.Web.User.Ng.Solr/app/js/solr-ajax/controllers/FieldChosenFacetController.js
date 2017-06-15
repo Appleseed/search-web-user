@@ -349,6 +349,9 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
             query.addFacet(facet);
         }
 
+        // Resets pagination
+        query.removeOption("start");
+
         // Removes query option "clear" before page refresh
         query.removeOption("clear");
         

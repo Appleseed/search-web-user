@@ -55,6 +55,9 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                 // input field place holder value
                 scope.placeHolder = "Keyword or topic name";
 
+                // the name of the main query
+                scope.queryname = SolrSearchService.defaultQueryName;
+
                 // once the user has provided the minimum number of characters to start
                 // the query process, we start a clock
                 scope.queryBuffer = [];
@@ -133,8 +136,14 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                     query.solr = $rootScope.appleseedsSearchSolrProxy;
                     query.setNearMatch(scope.nearMatch);
                     query.setUserQuery(scope.userQuery);
+                    // Resets pagination
+                    query.removeOption("start");
                     // update the window location
                     var hash = query.getHash();
+
+                    SolrSearchService.setQuery(scope.queryname, query);
+                    SolrSearchService.updateQuery(scope.queryname);
+
                     if (scope.redirect) {
                         $window.location.href = scope.redirect + '#' + hash;
                     } else {

@@ -45,13 +45,15 @@ function FacetClearSelectionController($scope,$rootScope, $attrs, $location, $ro
 
     //Removes all applied facets from hash
     $scope.clearFilters = function(){
-        var query = SolrSearchService.getQuery($scope.queryName);
+        var hash = ($routeParams.query || "");
+        var query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);        
         if (query == undefined) {
             query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
         }
 
         query.clearFacets();
 
+        /*
         // Fields should be the list of fields
         var fields = [];
         for (var field in fields) {
@@ -61,13 +63,28 @@ function FacetClearSelectionController($scope,$rootScope, $attrs, $location, $ro
                 if (option == undefined) break;
                 query.removeOption(stringifyQFR(fields[field], i));
             }
+        }*/
+
+        // Removing any qFR (i.e. dFR) options from the query hash
+        for (var option in query.options) {
+            //var optionString = option.toString();
+            if (option.match(/dFR\[.*\]/)) {
+                query.removeOption(option);
+            }
         }
 
         // remove options that were manually created based on hash
         jQuery(".temp-option").remove();
 
+        // Resets pagination
+        query.removeOption("start");
+        
         query.setOption("clear", "true");
-        var hash = query.getHash();
+        
+        SolrSearchService.setQuery($scope.target, query);
+        SolrSearchService.updateQuery($scope.target);
+
+        hash = query.getHash();
         $location.path(hash);
     };
 

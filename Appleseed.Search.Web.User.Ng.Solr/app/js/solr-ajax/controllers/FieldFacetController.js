@@ -192,6 +192,8 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
             } else {
                 query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
             }
+            // Resets pagination
+            query.removeOption("start");
             query.setOption("facet", "true");
             query.setOption("facet.field", $scope.field);
             //query.setOption("facet.limit", $scope.maxItems);

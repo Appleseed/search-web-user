@@ -115,6 +115,9 @@ function SearchBoxController($scope, $rootScope, $attrs, $location, $route, $rou
         query.setNearMatch($scope.nearMatch);
         query.setUserQuery($scope.userquery);
         
+        // Resets pagination
+        query.removeOption("start");
+
         //REVIEW - added to clear facets when user searches from the search box 
         query.clearFacets();
 

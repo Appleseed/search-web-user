@@ -121,6 +121,9 @@ function FieldAlphaFilterFacetController($scope,$rootScope, $attrs, $location, $
         // index of the facet 
         var facetIndex = $scope.facets.indexOf(facet);
         
+        // Resets pagination
+        query.removeOption("start");
+
         if (facetIndex == -1) {
             // REVIEW - for some reason the indexOf above is not detecting so walking through this manually
             for (var i=0;i<facets.length;i++) {

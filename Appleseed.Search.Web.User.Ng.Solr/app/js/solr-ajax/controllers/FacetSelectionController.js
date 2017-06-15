@@ -40,6 +40,8 @@ function FacetSelectionController($scope,$rootScope, $attrs, $location, $route, 
         query.removeFacetByIndex(Index);
         // change window location
         var hash = query.getHash();
+        // Resets pagination
+        query.removeOption("start");
         $location.path(hash);
     };
 
