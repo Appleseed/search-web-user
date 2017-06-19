@@ -38,10 +38,10 @@ function FacetSelectionController($scope,$rootScope, $attrs, $location, $route, 
     $scope.remove = function(Index) {
         var query = SolrSearchService.getQuery($scope.target);
         query.removeFacetByIndex(Index);
-        // change window location
-        var hash = query.getHash();
         // Resets pagination
         query.removeOption("start");
+        // change window location
+        var hash = query.getHash();
         $location.path(hash);
     };
 

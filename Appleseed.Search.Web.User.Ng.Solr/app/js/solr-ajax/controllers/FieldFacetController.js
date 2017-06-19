@@ -99,6 +99,9 @@ function FieldFacetController($scope,$rootScope, $attrs, $location, $route, $rou
         var value = "(" + $scope.items[Index].value.replace(' : ', ' ').split(' ').join('*') + ")";
 
         var facet = query.createFacet(name, value);
+
+        // Resets pagination
+        query.removeOption("start");
         // check to see if the selected facet is already in the list
         if ($scope.facets.indexOf(facet) == -1) {
             query.addFacet(facet);

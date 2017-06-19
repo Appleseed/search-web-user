@@ -81,6 +81,8 @@ function DateFacetController($scope,$rootScope, $attrs, $location, $route, $rout
         var date_value = $scope.items[Index].value.split(":").join('\\:').split(' ').join('*');
         var value = "(" + date_value + ")";
         var facet = query.createFacet(name, value);
+        // Resets pagination
+        query.removeOption("start");
         // check to see if the selected facet is already in the list
         if ($scope.facets.indexOf(facet) == -1) {
             query.addFacet(facet);

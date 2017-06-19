@@ -20,7 +20,7 @@ app.config(['$routeProvider', function ($routeProvider) {
         otherwise({ event: "/" });
 }])
 .run(function($rootScope) {
-	$rootScope.appleseedsSearchSolrProxy = "http://localhost:8983/solr/appleseed-public";
+	$rootScope.appleseedsSearchSolrProxy = "https://api.beefsafetyresource.com/solr";
     $rootScope.siteDomainPath = "http://url.org";
     // the current webpage's hostname/ what is sent to solr as a filter query 
     $rootScope.siteDomainHostname = $rootScope.siteDomainPath.substring(7,$rootScope.siteDomainPath.length);

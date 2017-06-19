@@ -74,6 +74,8 @@ function DateRangeFacetController($scope,$rootScope, $attrs, $location, $route, 
             query = SolrSearchService.createQuery($rootScope.appleseedsSearchSolrProxy);
         }
         query.solr = $rootScope.appleseedsSearchSolrProxy;
+        // Resets pagination
+        query.removeOption("start");
         var name = $scope.field;
         // ISSUE #27 replace all space characters with * to ensure that Solr matches
         // on the space value
