@@ -100,8 +100,10 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                  */
                 scope.clearHintSelection = function () {
                     if (scope.selectedHint != -1) {
-                        var hint = scope.hints[scope.selectedHint];
-                        hint.selected = false;
+                        if (hint != undefined) {
+                            var hint = scope.hints[scope.selectedHint];
+                            hint.selected = false;
+                        }
                     }
                 };
 
@@ -115,6 +117,11 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                         scope.userQuery = query.getUserQuery();
                     } else {
                         scope.userQuery = hash;
+                    }
+                    // For the display of the searchbox contents:
+                    // remove $scope.parentQuery if it exists in the userquery
+                    if (scope.userQuery.match(scope.parentQuery) && scope.parentQuery != undefined) {
+                        scope.userQuery = scope.userQuery.replace(scope.parentQuery, '');
                     }
                 };
 
@@ -180,8 +187,10 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                  */
                 scope.highlightHint = function (index) {
                     var hint = scope.hints[index];
-                    hint.selected = true;
-                    scope.$apply();
+                    if (hint != undefined) {
+                        hint.selected = true;
+                        scope.$apply();
+                    }
                 };
 
                 /**
@@ -226,6 +235,19 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                     scope.$on("$routeChangeSuccess", function() { scope.handleRouteChange() });
                     // handle update events on the hints query
                     scope.$on(scope.searchHintsQuery, scope.handleUpdate);
+
+                    // For the display of the searchbox contents:
+                    var hash = ($routeParams.query || "");
+                    if (hash != "") {
+                        var query = SolrSearchService.getQueryFromHash(hash, $rootScope.appleseedsSearchSolrProxy);
+                        scope.userQuery = query.getUserQuery();
+                    } else {
+                        scope.userQuery = hash;
+                    }
+                    // remove $scope.parentQuery if it exists in the userquery
+                    if (scope.userQuery.match(scope.parentQuery) && scope.parentQuery != undefined) {
+                        scope.userQuery = scope.userQuery.replace(scope.parentQuery, '');
+                    }
                 };
 
                 /**
@@ -312,7 +334,9 @@ module.directive('searchbox', ['$rootScope','$location','$log','$routeParams','$
                  */
                 scope.selectHint = function (index) {
                     var hint = scope.hints[index];
-                    scope.userQuery = hint.title;
+                    if (hint != undefined) {
+                        scope.userQuery = hint.title;
+                    }
                 };
 
                 // initialize the controller

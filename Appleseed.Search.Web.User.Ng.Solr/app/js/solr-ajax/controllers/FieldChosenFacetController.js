@@ -389,17 +389,19 @@ function FieldChosenFacetController($scope,$rootScope, $attrs, $location, $q, $t
                             }
                         }
                         var count = 0;
-                        while (query.getOption(stringifyQFR($scope.field, count))){
-                            var facetState = query.getOption(stringifyQFR($scope.field, count));
-                            var facetStateString = facetState.substring(1, facetState.length-1);
-                            for(var item in $scope.items) {
-                                if (replaceSpecialChars($scope.items[item].value) == facetStateString) {
-                                    $scope.selectedItems.push($scope.items[item]);
+                        if (query != undefined) {
+                            while (query.getOption(stringifyQFR($scope.field, count))){
+                                var facetState = query.getOption(stringifyQFR($scope.field, count));
+                                var facetStateString = facetState.substring(1, facetState.length-1);
+                                for(var item in $scope.items) {
+                                    if (replaceSpecialChars($scope.items[item].value) == facetStateString) {
+                                        $scope.selectedItems.push($scope.items[item]);
+                                    }
                                 }
-                            }
 
-                            count++;
-                        } 
+                                count++;
+                            } 
+                        }
                         $scope.selectedItems = facetArrayUnique($scope.selectedItems);
                         $scope.applyFacets($scope.selectedItems);
                     } else {
