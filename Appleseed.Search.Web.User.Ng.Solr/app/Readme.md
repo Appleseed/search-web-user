@@ -1,12 +1,12 @@
 
 # How to add / remove fields from Search Results
 
-To add or remove fields from your list of search results, open the appropriate html page and search for ``class="results"``.  The contents within the <div> of this class should contain the fields and html elements regarding search results.  These results are created and controlled by the Angular controller, DocumentSearchResultsController.  Each result is an object, ``doc``, and each object contains many fields that are defined by your Solr index.
+To add or remove fields from your list of search results, open the appropriate html page and search for ``class="results"``.  The contents within the ``<div>`` of this class should contain the fields and html elements regarding search results.  These results are created and controlled by the Angular controller, DocumentSearchResultsController.  Each result is an object, ``doc``, and each object contains many fields that are defined by your Solr index.
 
 To add a field, add an Angular expression of the object's property to the page, plus additional elements that will display your field. Use the other elements in the page as reference.
     eg. ``<p>{{doc.name}}</p>`` to add the field "name" of the respective search result.
 
-To remove a field, exlpore the <div> container for the field you are looking to delete, and remove the Angular expression plus any related elements,
+To remove a field, exlpore the ``<div>`` container for the field you are looking to delete, and remove the Angular expression plus any related elements,
     eg. You can delete ``<p>{{doc.location}}</p>`` so the "location" field no longer appears in your search results.
 
 
@@ -42,46 +42,46 @@ Important variables:
     _self.excludeFromHash_ - an array of strings that should be excluded from the hash of the URL
 
 Important functions:
-    _self.addFacet(Facet)_ - Add facet constraint if it does not already exist, or updates it if it does.
-    _self.createFacet(Name, Value)_ - Create a new facet.
-    _self.getFacet(Name)_ - Get facet by name. Returns null if the facet could not be found.
-    _self.getHash()_ - Get the hash portion of the query URL.
-    _self.getOption(Name)_ - Get option value.
-    _self.getQuery(ForSolr)_ - Get the query portion of the URL.
-    _self.getSuggestions()_ - Get the suggestions object.
-    _self.getUserQuery()_ - Get the user query value. i.e. get the search value.
-    _self.removeFacet(Name)_ - Remove facet by name.
-    _self.removeOption(Name)_ - Remove a query option by name.
-    _self.setNearMatch(nearMatch)_ - Set the near matching option.
-    _self.setOption(Name,Value)_ - Set option. User queries should be set using the setUserQuery() and setUserQueryOption() functions.
-    _self.setUserQuery(Query)_ - Set the user query. i.e. set the search value.
+* _self.addFacet(Facet)_ - Add facet constraint if it does not already exist, or updates it if it does.
+* _self.createFacet(Name, Value)_ - Create a new facet.
+* _self.getFacet(Name)_ - Get facet by name. Returns null if the facet could not be found.
+* _self.getHash()_ - Get the hash portion of the query URL.
+* _self.getOption(Name)_ - Get option value.
+* _self.getQuery(ForSolr)_ - Get the query portion of the URL.
+* _self.getSuggestions()_ - Get the suggestions object.
+* _self.getUserQuery()_ - Get the user query value. i.e. get the search value.
+* _self.removeFacet(Name)_ - Remove facet by name.
+* _self.removeOption(Name)_ - Remove a query option by name.
+* _self.setNearMatch(nearMatch)_ - Set the near matching option.
+* _self.setOption(Name,Value)_ - Set option. User queries should be set using the setUserQuery() and setUserQueryOption() functions.
+* _self.setUserQuery(Query)_ - Set the user query. i.e. set the search value.
 
 SolrSearchService: 
 Used for managing and executing queries against an Apache Solr/Lucene search index. The service provides shared search configuration for multiple controllers in the form of named queries, and a broadcast service to announce changes on named queries.
 
 Important functions in an instance of SolrSearchService:
-    _.createQuery(Core)_ - Create a default query object.
-    _.getQuery(Name)_ - Get the query object.
-    _.getQueryFromHash(Hash, CoreUrl)_ - Parse the URL hash and return a query object.
-    _.setQuery(Name, Query)_ - Set the query by name.
-    _.updateQuery(QueryName)_ - Update the named query.
+* _.createQuery(Core)_ - Create a default query object.
+* _.getQuery(Name)_ - Get the query object.
+* _.getQueryFromHash(Hash, CoreUrl)_ - Parse the URL hash and return a query object.
+* _.setQuery(Name, Query)_ - Set the query by name.
+* _.updateQuery(QueryName)_ - Update the named query.
 
 
 # Overview of Controllers
 
 The application includes a number of controllers, some of which may not be actively used on an html page.  By default, most controllers are stored in the directory ``app/js/solr-ajax/controllers``.
 
-DateFacetController.js - Date facet controller filters a query by year range, displays controls to set the start/end dates.
-DateFacetHistogramController.js - Date facet histogram controller filters a query by year range, displays controls to set the start/end dates, displays a histogram control to both view and filter date by year range.
-DateRangeFacetController.js - Date facet controller filters a query by various date ranges.
-DocumentSearchResultsController.js - Presents search results for a named query.
-FacetSelectionController.js - Facet field query controller. Fetches a list of facet values from the search index for the specified field. When a facet value is selected by the user, a facet constraint is added to the target query, If facets are mutually exclusive, the 'hidden' variable is set to true to prevent the user from selecting more values. When the facet constraint is removed 'hidden' is set back to false.
-FacetClearSelectionController.js - Facet field clear selection controller.  Clears selected facets from query.
-FieldChosenFacetController.js - Chosen Field Facet Controller. It renders a Chosen.js dropdown / selection box as needed. 
-FieldCheckboxFacetController.js - Field checkbox facet controller. Creates controls for checkboxes to be used as part of a facet query. Currently handles Gender facets "M" and "F"
-FieldAlphaFilterFacetController.js - Alpha Field Facet Filter controller. It renders an A-Z filter which is then tied to the search query.
-SearchBoxController.js - Provides auto-complete and extended search support aids.
-SearchHistoryController.js - Search history controller. Lists the last N user search queries. Takes the form of a queue.
+* DateFacetController.js - Date facet controller filters a query by year range, displays controls to set the start/end dates.
+* DateFacetHistogramController.js - Date facet histogram controller filters a query by year range, displays controls to set the start/end dates, displays a histogram control to both view and filter date by year range.
+* DateRangeFacetController.js - Date facet controller filters a query by various date ranges.
+* DocumentSearchResultsController.js - Presents search results for a named query.
+* FacetSelectionController.js - Facet field query controller. Fetches a list of facet values from the search index for the specified field. When a facet value is selected by the user, a facet constraint is added to the target query, If facets are mutually exclusive, the 'hidden' variable is set to true to prevent the user from selecting more values. When the facet constraint is removed 'hidden' is set back to false.
+* FacetClearSelectionController.js - Facet field clear selection controller.  Clears selected facets from query.
+* FieldChosenFacetController.js - Chosen Field Facet Controller. It renders a Chosen.js dropdown / selection box as needed. 
+* FieldCheckboxFacetController.js - Field checkbox facet controller. Creates controls for checkboxes to be used as part of a facet query. Currently handles Gender facets "M" and "F"
+* FieldAlphaFilterFacetController.js - Alpha Field Facet Filter controller. It renders an A-Z filter which is then tied to the * search query.
+* SearchBoxController.js - Provides auto-complete and extended search support aids.
+* SearchHistoryController.js - Search history controller. Lists the last N user search queries. Takes the form of a queue.
 
 
 # Overview of Directives
